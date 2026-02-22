@@ -119,7 +119,7 @@ export default function Chat() {
         </header>
 
         {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto bg-sidebar">
           {!activeConvId && messages.length === 0 ? (
             <EmptyChat onSuggestion={handleSend} />
           ) : (
