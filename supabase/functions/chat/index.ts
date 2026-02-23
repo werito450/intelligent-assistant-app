@@ -15,7 +15,13 @@ serve(async (req) => {
 
     const defaultPersonality = "Eres un asistente personal inteligente, amable y profesional. Respondes en el mismo idioma que el usuario. Eres conciso pero completo. Usas markdown para formatear tus respuestas cuando es apropiado (listas, código, negritas, etc). Tu nombre es Nova.";
     
+    // Get current time in Bolivia (UTC-4)
+    const now = new Date();
+    const boliviaTime = new Date(now.getTime() + (-4 * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
+    const boliviaTimeStr = boliviaTime.toLocaleString("es-BO", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+    
     let systemContent = personality || defaultPersonality;
+    systemContent += `\n\nFecha y hora actual en Bolivia: ${boliviaTimeStr}.`;
     
     // Add memory from past conversations if available
     if (memory && memory.length > 0) {
