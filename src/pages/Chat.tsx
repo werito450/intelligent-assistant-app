@@ -10,6 +10,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import TypingIndicator from "@/components/chat/TypingIndicator";
 import EmptyChat from "@/components/chat/EmptyChat";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Chat() {
   const { user } = useAuth();
@@ -18,7 +19,38 @@ export default function Chat() {
   const { messages, addMessage, appendLocal, updateLastAssistant } = useMessages(activeConvId);
   const [isStreaming, setIsStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [personality, setPersonality] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Load user personality
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("user_settings").select("personality").eq("user_id", user.id).single()
+      .then(({ data }) => { if (data?.personality) setPersonality(data.personality); });
+  }, [user]);
+
+  // Build memory from recent past conversations
+  const buildMemory = useCallback(async () => {
+    if (!user || !conversations.length) return "";
+    // Get last 5 conversations (excluding current) with their messages
+    const pastConvs = conversations.filter(c => c.id !== activeConvId).slice(0, 5);
+    if (!pastConvs.length) return "";
+    
+    const memoryParts: string[] = [];
+    for (const conv of pastConvs) {
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("role, content")
+        .eq("conversation_id", conv.id)
+        .order("created_at", { ascending: true })
+        .limit(6); // first 6 messages per conversation
+      if (msgs && msgs.length > 0) {
+        const summary = msgs.map(m => `${m.role === "user" ? "Usuario" : "Nova"}: ${m.content.slice(0, 150)}`).join("\n");
+        memoryParts.push(`[${conv.title}]\n${summary}`);
+      }
+    }
+    return memoryParts.join("\n\n");
+  }, [user, conversations, activeConvId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -62,8 +94,12 @@ export default function Chat() {
         content: m.content,
       }));
 
+      const memory = await buildMemory();
+
       await streamChat({
         messages: chatMessages,
+        personality,
+        memory,
         onDelta: (chunk) => {
           assistantContent += chunk;
           updateLastAssistant(assistantContent);
@@ -79,7 +115,7 @@ export default function Chat() {
       setIsStreaming(false);
       toast.error(err.message || "Error al comunicarse con la IA");
     }
-  }, [activeConvId, messages, createConversation, addMessage, appendLocal, updateLastAssistant, updateTitle]);
+  }, [activeConvId, messages, createConversation, addMessage, appendLocal, updateLastAssistant, updateTitle, buildMemory, personality]);
 
   const handleNewChat = async () => {
     setActiveConvId(null);

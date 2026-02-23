@@ -6,10 +6,14 @@ export async function streamChat({
   messages,
   onDelta,
   onDone,
+  personality,
+  memory,
 }: {
   messages: Msg[];
   onDelta: (deltaText: string) => void;
   onDone: () => void;
+  personality?: string;
+  memory?: string;
 }) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
@@ -17,7 +21,7 @@ export async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, personality, memory }),
   });
 
   if (!resp.ok) {

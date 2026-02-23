@@ -9,9 +9,18 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, personality, memory } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const defaultPersonality = "Eres un asistente personal inteligente, amable y profesional. Respondes en el mismo idioma que el usuario. Eres conciso pero completo. Usas markdown para formatear tus respuestas cuando es apropiado (listas, código, negritas, etc). Tu nombre es Nova.";
+    
+    let systemContent = personality || defaultPersonality;
+    
+    // Add memory from past conversations if available
+    if (memory && memory.length > 0) {
+      systemContent += "\n\n--- MEMORIA DE CONVERSACIONES ANTERIORES ---\nAquí tienes un resumen de conversaciones pasadas con el usuario para mantener contexto:\n" + memory + "\n--- FIN DE MEMORIA ---\nUsa esta memoria para dar respuestas más personalizadas y recordar preferencias del usuario.";
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -22,10 +31,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          {
-            role: "system",
-            content: "Eres un asistente personal inteligente, amable y profesional. Respondes en el mismo idioma que el usuario. Eres conciso pero completo. Usas markdown para formatear tus respuestas cuando es apropiado (listas, código, negritas, etc). Tu nombre es Nova."
-          },
+          { role: "system", content: systemContent },
           ...messages,
         ],
         stream: true,
