@@ -160,8 +160,13 @@ export default function Chat() {
             <EmptyChat onSuggestion={handleSend} />
           ) : (
             <div className="mx-auto max-w-3xl divide-y divide-border/50">
-              {messages.map((msg) => (
-                <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
+              {messages.map((msg, i) => (
+                <ChatMessage
+                  key={msg.id}
+                  role={msg.role}
+                  content={msg.content}
+                  isStreaming={isStreaming && msg.role === "assistant" && i === messages.length - 1}
+                />
               ))}
               {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
                 <TypingIndicator />
