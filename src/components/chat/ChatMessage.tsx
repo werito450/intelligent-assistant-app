@@ -1,6 +1,7 @@
-import { Bot, User } from "lucide-react";
+import { Bot, User, Volume2, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
+import { useState, useRef, useCallback } from "react";
 
 interface Props {
   role: "user" | "assistant";
@@ -8,8 +9,54 @@ interface Props {
   isStreaming?: boolean;
 }
 
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
+
 export default function ChatMessage({ role, content, isStreaming }: Props) {
   const isUser = role === "user";
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleSpeak = useCallback(async () => {
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(TTS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text: content }),
+      });
+
+      if (!response.ok) throw new Error("TTS failed");
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(url);
+      };
+
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      console.error("TTS playback failed");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [content, isPlaying]);
 
   return (
     <motion.div
@@ -30,9 +77,27 @@ export default function ChatMessage({ role, content, isStreaming }: Props) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="mb-1 text-xs font-medium text-muted-foreground">
-          {isUser ? "Tú" : "Nova"}
-        </p>
+        <div className="mb-1 flex items-center gap-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            {isUser ? "Tú" : "Nova"}
+          </p>
+          {!isUser && !isStreaming && content && (
+            <button
+              onClick={handleSpeak}
+              disabled={isLoading}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+              title={isPlaying ? "Detener" : "Escuchar"}
+            >
+              {isPlaying ? (
+                <Square className="h-3.5 w-3.5" />
+              ) : (
+                <motion.div animate={isLoading ? { scale: [1, 1.2, 1] } : {}} transition={{ duration: 0.6, repeat: Infinity }}>
+                  <Volume2 className="h-3.5 w-3.5" />
+                </motion.div>
+              )}
+            </button>
+          )}
+        </div>
         <div className={`prose-chat text-sm leading-relaxed text-foreground`}>
           {isUser ? (
             <p className="whitespace-pre-wrap">{content}</p>
