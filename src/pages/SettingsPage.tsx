@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Bot } from "lucide-react";
+import { ArrowLeft, Save, Bot, Volume2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -18,12 +18,25 @@ const presetPersonalities = [
   { label: "Técnico", value: "Eres un asistente técnico experto. Das explicaciones detalladas con terminología precisa, ejemplos de código y referencias técnicas. Tu nombre es Nova." },
 ];
 
+const voiceOptions = [
+  { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah", desc: "Femenina, amigable" },
+  { id: "FGY2WhTYpPnrIDTdsKH5", label: "Laura", desc: "Femenina, cálida" },
+  { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily", desc: "Femenina, suave" },
+  { id: "JBFqnCBsd6RMkjVDRZzb", label: "George", desc: "Masculina, profunda" },
+  { id: "TX3LPaxmHKxFdv7VOQHJ", label: "Liam", desc: "Masculina, clara" },
+  { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel", desc: "Masculina, natural" },
+  { id: "CwhRBWXzGAHq8TQ4Fs17", label: "Roger", desc: "Masculina, madura" },
+  { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica", desc: "Femenina, expresiva" },
+];
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [personality, setPersonality] = useState(defaultPersonality);
+  const [voiceId, setVoiceId] = useState("EXAVITQu4vr4xnSDxMaL");
+  const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -35,6 +48,7 @@ export default function SettingsPage() {
       if (settings) {
         setDisplayName(settings.display_name || "");
         if (settings.personality) setPersonality(settings.personality);
+        if (settings.voice_id) setVoiceId(settings.voice_id);
       }
     };
     load();
@@ -44,7 +58,7 @@ export default function SettingsPage() {
     if (!user) return;
     setSaving(true);
     await supabase.from("profiles").update({ username }).eq("id", user.id);
-    await supabase.from("user_settings").update({ display_name: displayName, personality }).eq("user_id", user.id);
+    await supabase.from("user_settings").update({ display_name: displayName, personality, voice_id: voiceId }).eq("user_id", user.id);
     toast.success("Ajustes guardados");
     setSaving(false);
   };
@@ -121,6 +135,35 @@ export default function SettingsPage() {
             rows={4}
             className="resize-none"
           />
+        </div>
+
+        {/* Voice */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <Volume2 className="h-5 w-5 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">Voz de Nova</h2>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Elige la voz que usará Nova al hablar sus respuestas.
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {voiceOptions.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => setVoiceId(v.id)}
+                className={`rounded-lg border p-3 text-left transition-colors ${
+                  voiceId === v.id
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <p className={`text-sm font-medium ${voiceId === v.id ? "text-primary" : "text-foreground"}`}>
+                  {v.label}
+                </p>
+                <p className="text-xs text-muted-foreground">{v.desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="gap-2">

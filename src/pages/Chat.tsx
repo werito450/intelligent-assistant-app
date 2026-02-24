@@ -20,13 +20,17 @@ export default function Chat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [personality, setPersonality] = useState<string>("");
+  const [voiceId, setVoiceId] = useState<string>("EXAVITQu4vr4xnSDxMaL");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load user personality
   useEffect(() => {
     if (!user) return;
-    supabase.from("user_settings").select("personality").eq("user_id", user.id).single()
-      .then(({ data }) => { if (data?.personality) setPersonality(data.personality); });
+    supabase.from("user_settings").select("personality, voice_id").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data?.personality) setPersonality(data.personality);
+        if (data?.voice_id) setVoiceId(data.voice_id);
+      });
   }, [user]);
 
   // Build memory from recent past conversations
@@ -166,6 +170,7 @@ export default function Chat() {
                   role={msg.role}
                   content={msg.content}
                   isStreaming={isStreaming && msg.role === "assistant" && i === messages.length - 1}
+                  voiceId={voiceId}
                 />
               ))}
               {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (

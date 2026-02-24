@@ -1,0 +1,1 @@
+ALTER TABLE public.user_settings ADD COLUMN voice_id TEXT DEFAULT 'EXAVITQu4vr4xnSDxMaL';

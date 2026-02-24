@@ -7,11 +7,12 @@ interface Props {
   role: "user" | "assistant";
   content: string;
   isStreaming?: boolean;
+  voiceId?: string;
 }
 
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 
-export default function ChatMessage({ role, content, isStreaming }: Props) {
+export default function ChatMessage({ role, content, isStreaming, voiceId }: Props) {
   const isUser = role === "user";
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +35,7 @@ export default function ChatMessage({ role, content, isStreaming }: Props) {
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ text: content }),
+        body: JSON.stringify({ text: content, voiceId }),
       });
 
       if (!response.ok) throw new Error("TTS failed");
