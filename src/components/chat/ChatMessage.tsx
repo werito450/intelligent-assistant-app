@@ -1,7 +1,8 @@
-import { Bot, User, Volume2, Square } from "lucide-react";
+import { User, Volume2, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
 import { useState, useRef, useCallback } from "react";
+import novaAvatar from "@/assets/nova-avatar.png";
 
 interface Props {
   role: "user" | "assistant";
@@ -66,17 +67,13 @@ export default function ChatMessage({ role, content, isStreaming, voiceId }: Pro
       transition={{ duration: 0.3, ease: "easeOut" }}
       className={`flex gap-3 px-4 py-4`}
     >
-      <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-          isUser ? "bg-chat-user" : "bg-primary"
-        }`}
-      >
-        {isUser ? (
+      {isUser ? (
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-chat-user">
           <User className="h-4 w-4 text-chat-user-fg" />
-        ) : (
-          <Bot className="h-4 w-4 text-primary-foreground" />
-        )}
-      </div>
+        </div>
+      ) : (
+        <img src={novaAvatar} alt="Nova" className="h-8 w-8 shrink-0 rounded-lg object-cover" />
+      )}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
           <p className="text-xs font-medium text-muted-foreground">

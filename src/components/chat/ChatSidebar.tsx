@@ -3,6 +3,7 @@ import { Conversation } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import novaAvatar from "@/assets/nova-avatar.png";
 
 interface Props {
   conversations: Conversation[];
@@ -43,9 +44,7 @@ export default function ChatSidebar({ conversations, activeId, onSelect, onNew, 
         <div className="flex h-full flex-col md:animate-none" style={{ transform: "none" }}>
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-accent">
-              <MessageSquare className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={novaAvatar} alt="Nova" className="h-9 w-9 rounded-lg object-cover" />
             <span className="text-lg font-semibold text-sidebar-active">Nova</span>
           </div>
 

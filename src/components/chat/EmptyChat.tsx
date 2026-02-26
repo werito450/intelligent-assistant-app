@@ -1,5 +1,6 @@
-import { Bot, Sparkles, Code, BookOpen } from "lucide-react";
+import { Sparkles, Code, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
+import novaAvatar from "@/assets/nova-avatar.png";
 
 interface Props {
   onSuggestion: (text: string) => void;
@@ -18,9 +19,9 @@ export default function EmptyChat({ onSuggestion }: Props) {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 200 }}
-        className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10"
+        className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl overflow-hidden bg-primary/10"
       >
-        <Bot className="h-10 w-10 text-primary" />
+        <img src={novaAvatar} alt="Nova" className="h-full w-full object-cover" />
       </motion.div>
       <motion.h2
         initial={{ opacity: 0, y: 10 }}
