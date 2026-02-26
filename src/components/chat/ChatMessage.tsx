@@ -101,7 +101,19 @@ export default function ChatMessage({ role, content, isStreaming, voiceId }: Pro
             <p className="whitespace-pre-wrap">{content}</p>
           ) : (
             <div className={isStreaming ? "streaming-text" : ""}>
-              <ReactMarkdown>{content}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  img: ({ src, alt }) => (
+                    <img
+                      src={src}
+                      alt={alt || "Imagen generada por Nova"}
+                      className="my-3 max-w-full rounded-xl border border-border shadow-md"
+                      style={{ maxHeight: 512 }}
+                      loading="lazy"
+                    />
+                  ),
+                }}
+              >{content}</ReactMarkdown>
               {isStreaming && (
                 <motion.span
                   className="inline-block ml-0.5 w-0.5 h-4 bg-primary align-text-bottom"

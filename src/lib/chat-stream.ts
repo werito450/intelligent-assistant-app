@@ -8,12 +8,14 @@ export async function streamChat({
   onDone,
   personality,
   memory,
+  image,
 }: {
   messages: Msg[];
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   personality?: string;
   memory?: string;
+  image?: string;
 }) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
@@ -21,12 +23,27 @@ export async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, personality, memory }),
+    body: JSON.stringify({ messages, personality, memory, image }),
   });
 
   if (!resp.ok) {
     const errorData = await resp.json().catch(() => ({}));
     throw new Error(errorData.error || `Error ${resp.status}`);
+  }
+
+  // Check if response is JSON (image generation) vs SSE (streaming chat)
+  const contentType = resp.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const data = await resp.json();
+    if (data.type === "image_generation") {
+      let markdown = data.text || "Aquí tienes la imagen generada:";
+      if (data.imageUrl) {
+        markdown += `\n\n![Imagen generada](${data.imageUrl})`;
+      }
+      onDelta(markdown);
+      onDone();
+      return;
+    }
   }
 
   if (!resp.body) throw new Error("No response body");

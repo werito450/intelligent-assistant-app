@@ -62,7 +62,7 @@ export default function Chat() {
     }
   }, [messages, isStreaming]);
 
-  const handleSend = useCallback(async (input: string) => {
+  const handleSend = useCallback(async (input: string, image?: string) => {
     let convId = activeConvId;
 
     if (!convId) {
@@ -104,6 +104,7 @@ export default function Chat() {
         messages: chatMessages,
         personality,
         memory,
+        image,
         onDelta: (chunk) => {
           assistantContent += chunk;
           updateLastAssistant(assistantContent);
