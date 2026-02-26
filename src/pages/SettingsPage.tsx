@@ -30,7 +30,7 @@ const voiceOptions = [
 ];
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -98,73 +98,77 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Personality */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-semibold text-foreground">Personalidad de Nova</h2>
-          </div>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Personaliza cómo se comporta Nova. Elige un preset o escribe tu propia instrucción.
-          </p>
-          <div className="mb-4 flex flex-wrap gap-2">
-            {presetPersonalities.map((p) => (
+        {/* Personality - Admin only */}
+        {isAdmin && (
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Personalidad de Nova</h2>
+            </div>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Personaliza cómo se comporta Nova. Elige un preset o escribe tu propia instrucción.
+            </p>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {presetPersonalities.map((p) => (
+                <button
+                  key={p.label}
+                  onClick={() => setPersonality(p.value)}
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    personality === p.value
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
               <button
-                key={p.label}
-                onClick={() => setPersonality(p.value)}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  personality === p.value
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                }`}
+                onClick={() => setPersonality(defaultPersonality)}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
               >
-                {p.label}
+                Restablecer
               </button>
-            ))}
-            <button
-              onClick={() => setPersonality(defaultPersonality)}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
-            >
-              Restablecer
-            </button>
+            </div>
+            <Textarea
+              value={personality}
+              onChange={(e) => setPersonality(e.target.value)}
+              placeholder="Describe cómo quieres que se comporte Nova..."
+              rows={4}
+              className="resize-none"
+            />
           </div>
-          <Textarea
-            value={personality}
-            onChange={(e) => setPersonality(e.target.value)}
-            placeholder="Describe cómo quieres que se comporte Nova..."
-            rows={4}
-            className="resize-none"
-          />
-        </div>
+        )}
 
-        {/* Voice */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <Volume2 className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-semibold text-foreground">Voz de Nova</h2>
+        {/* Voice - Admin only */}
+        {isAdmin && (
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <Volume2 className="h-5 w-5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Voz de Nova</h2>
+            </div>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Elige la voz que usará Nova al hablar sus respuestas.
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {voiceOptions.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setVoiceId(v.id)}
+                  className={`rounded-lg border p-3 text-left transition-colors ${
+                    voiceId === v.id
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <p className={`text-sm font-medium ${voiceId === v.id ? "text-primary" : "text-foreground"}`}>
+                    {v.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{v.desc}</p>
+                </button>
+              ))}
+            </div>
           </div>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Elige la voz que usará Nova al hablar sus respuestas.
-          </p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {voiceOptions.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setVoiceId(v.id)}
-                className={`rounded-lg border p-3 text-left transition-colors ${
-                  voiceId === v.id
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:border-primary/50"
-                }`}
-              >
-                <p className={`text-sm font-medium ${voiceId === v.id ? "text-primary" : "text-foreground"}`}>
-                  {v.label}
-                </p>
-                <p className="text-xs text-muted-foreground">{v.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           <Save className="h-4 w-4" />
