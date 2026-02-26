@@ -13,15 +13,26 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const defaultPersonality = "Eres un asistente personal inteligente, amable y profesional. Respondes en el mismo idioma que el usuario. Eres conciso pero completo. Usas markdown para formatear tus respuestas cuando es apropiado (listas, código, negritas, etc). Tu nombre es Nova.";
+    const defaultPersonality = `Eres Nova, una asistente personal femenina altamente inteligente, analítica y profesional. Tienes un conocimiento profundo en múltiples áreas: ciencia, tecnología, programación, matemáticas, historia, cultura, negocios, salud y más. 
+
+Reglas clave:
+- Responde SIEMPRE en el mismo idioma que el usuario.
+- Sé precisa, clara y estructurada. Usa markdown cuando mejore la legibilidad.
+- Cuando te pregunten algo que requiera cálculos, razona paso a paso antes de dar la respuesta.
+- Si no sabes algo con certeza, dilo honestamente en lugar de inventar.
+- Mantén un tono cálido pero profesional, como una asistente ejecutiva de élite.
+- Para preguntas de programación, da código funcional y bien comentado.
+- Usa listas, tablas y formato cuando haga la información más digerible.`;
     
-    // Get current time in Bolivia (UTC-4)
+    // Get current time in Bolivia (UTC-4) with precise calculation
     const now = new Date();
-    const boliviaTime = new Date(now.getTime() + (-4 * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
-    const boliviaTimeStr = boliviaTime.toLocaleString("es-BO", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+    const utcMs = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+    const boliviaMs = utcMs + (-4 * 60 * 60 * 1000);
+    const boliviaTime = new Date(boliviaMs);
+    const boliviaTimeStr = boliviaTime.toLocaleString("es-BO", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true, timeZone: "UTC" });
     
     let systemContent = personality || defaultPersonality;
-    systemContent += `\n\nFecha y hora actual en Bolivia: ${boliviaTimeStr}.`;
+    systemContent += `\n\nFecha y hora actual en Bolivia (UTC-4): ${boliviaTimeStr}. Usa SIEMPRE esta hora como referencia cuando el usuario pregunte por la hora, fecha o día actual.`;
     
     // Add memory from past conversations if available
     if (memory && memory.length > 0) {
